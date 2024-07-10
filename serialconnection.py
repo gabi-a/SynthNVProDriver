@@ -3,7 +3,10 @@ from contextlib import contextmanager
 import serial
 import time
 from typing import List, Union
-from termios import error as TermiosError
+try:
+    from termios import error as TermiosError
+except ImportError:
+    TermiosError = Exception
 
 LOGGER = logging.getLogger(__name__)
 
