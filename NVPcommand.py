@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple, Union
 LOGGER = logging.getLogger(__name__)
 
 
-class Command:
+class NVPCommand:
     SET_FREQUENCY_MHZ = "f"
     SET_RF_POWER_dBm  = "W"
     QUERY_CAL_SUCCESS = "V"

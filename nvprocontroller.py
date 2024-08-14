@@ -5,8 +5,8 @@ import time
 import threading
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from serialconnection import SerialConnection
-from command import Command
+from SynthNVProDriver.NVPserialconnection import SerialConnection
+from SynthNVProDriver.NVPcommand import NVPCommand as Command
 
 
 FORMATTER = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
