@@ -510,19 +510,17 @@ class SynthNVProController:
         
     def set_trigger_connector_function(self, function: TRIGGER_MODE) -> None:
         """The SynthNV Pro Trigger input is a multifunction input. It is used for trigger events, but also
-        used for other things like external FM, AM and Pulse modulation inputs. The values are:```
-        0) No Triggers
-        12.5MHz – 6.4GHz Signal Generator plus RF Detector
-        10 Windfreak Technologies, LLC.
-        1) Trigger full frequency sweep
-        2) Trigger single frequency step
-        3) Trigger “stop all” which pauses sequencing through all functions of the SynthNV Pro
-        4) Trigger digital RF ON/OFF – Could be used for External Pulse Modulation
-        5) Remove Interrupts (Makes modulation have less jitter – use carefully)
-        6) Reserved
-        7) Reserved
-        8) External AM modulation input (requires AM Internal modulation LUT set to ramp)
-        9) External FM modulation input (requires FM Internal modulation set to chirp)```
+        used for other things like external FM, AM and Pulse modulation inputs. The values are:  
+        0) No Triggers  
+        1\) Trigger full frequency sweep  
+        2) Trigger single frequency step  
+        3) Trigger “stop all” which pauses sequencing through all functions of the SynthNV Pro  
+        4) Trigger digital RF ON/OFF – Could be used for External Pulse Modulation  
+        5) Remove Interrupts (Makes modulation have less jitter – use carefully)  
+        6) Reserved  
+        7) Reserved  
+        8) External AM modulation input (requires AM Internal modulation LUT set to ramp)  
+        9) External FM modulation input (requires FM Internal modulation set to chirp)
         """
         self.send_command(Command.format(Command.SET_TRIGGER_CONNECTOR_FUNCTION, arg=function.value))
 
@@ -545,6 +543,24 @@ class SynthNVProController:
         self.send_command(Command.format(Command.SET_TRIGGER_CONNECTOR_FUNCTION, query=True))
         return TRIGGER_MODE(self.connection.read_response())
     
+    def set_sweep_step_time(self, time: float):
+        """Sets the step time for the linear sweep in mS. Step time should be kept between 0.1mS and
+        60,000.0 mS.
+        txxxxx.xxx sets the step size frequency where x is the time in mS.
+        t? queries the setting"""
+        time = float(time)
+        if not 0.1 <= time <= 60000:
+            raise ValueError("Step time for linear sweep must be between 0.1mS and 60000mS.")
+        self.send_command(Command.format(Command.SET_SWEEP_STEP_TIME, arg=time, sigfigs=3))
+
+    def query_sweep_step_time(self) -> float:
+        """Gets the step time for the linear sweep in mS. Step time should be kept between 0.1mS and
+        60,000.0 mS.
+        txxxxx.xxx sets the step size frequency where x is the time in mS.
+        t? queries the setting"""
+        self.send_command(Command.format(Command.SET_SWEEP_STEP_TIME, query=True))
+        return float(self.connection.read_response())
+
     def set_lower_freq_linear_sweep(self, frequency: float):
         """Sets the lower frequency for the linear sweep in MHz. This frequency should be lower than the
         Upper Frequency and kept within 12.5MHz – 6400MHz."""
@@ -728,7 +744,7 @@ class SynthNVProController:
         self.send_command(Command.format(Command.SET_SWEEP_DISPLAY_STYLE, query=True))
         return int(self.connection.read_response())
 
-    def run_sweep(self):
+    def run_sweep(self, start=True):
         """Starts a sweep. Once complete the value is automatically returned to 0 unless Sweep Continuous
         “c” is set to 1. If “c” is set to 1 then the sweep process automatically repeats forever. If Sweep
         Continuous “c” is set to 0 a g1 will completely restart the sweep no matter where the sweep is at.
@@ -736,7 +752,18 @@ class SynthNVProController:
         gx controls running a single sweep when x=1=start, restart or continue and x=0=pause
         g? queries the setting
         """
-        self.send_command(Command.format(Command.RUN_SWEEP))
+        self.send_command(Command.format(Command.RUN_SWEEP, arg=int(start)))
+
+    def get_sweep_state(self) -> bool:
+        """Starts a sweep. Once complete the value is automatically returned to 0 unless Sweep Continuous
+        “c” is set to 1. If “c” is set to 1 then the sweep process automatically repeats forever. If Sweep
+        Continuous “c” is set to 0 a g1 will completely restart the sweep no matter where the sweep is at.
+        If “c” is set to 1 a “g0” will pause the sweep and a “g1” will continue the sweep.
+        gx controls running a single sweep when x=1=start, restart or continue and x=0=pause
+        g? queries the setting
+        """
+        self.send_command(Command.format(Command.RUN_SWEEP, query=True))
+        return bool(int(self.connection.read_response()))
 
     def set_sweep_continuous(self, continuous: bool):
         """Sets sweep continuously mode. If asserted (“c1”) the Run Sweep “g” command will not be reset
