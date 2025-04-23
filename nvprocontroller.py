@@ -809,3 +809,222 @@ class SynthNVProController:
         """
         self.send_command(Command.format(Command.SHOW_SERIAL_NUMBER))
         return self.connection.read_response()
+    
+    def read_table(self) -> Dict[List, List]:
+        """Reads the table of frequency and power values from the SynthNV Pro."""
+        self.send_command("L?")
+        freqs = []
+        amps  = []
+        for line in self.connection.read_until_eom():
+            # parse line with format L00f1000.000000a-10.00
+            # where f is the frequency and a is the amplitude
+            # using regex
+            match = re.match(r"L(\d+)f(\d+\.\d+)a(-?\d+\.\d+)", line)
+            idx = int(match.group(1))
+            if idx != len(freqs):
+                raise ValueError(f"Invalid index {idx} in line {line}")
+            freqs.append(float(match.group(2)))
+            amps.append(float(match.group(3)))
+        
+        return {'frequency': freqs, 'amplitude': amps}
+    
+    def write_table(self, freqs: List[float], amps: List[float], direction: int) -> None:
+        """Writes the table of frequency and power values to the SynthNV Pro."""
+        if len(freqs) != len(amps):
+            raise ValueError("Frequency and amplitude lists must be of the same length.")
+        
+        for i in range(len(freqs)):
+            command = f"L{i:02}f{freqs[i]:.6f}L{i:02}a{amps[i]:.2f}"
+            self.send_command(command)
+        
+        self.send_command(f"L{i+1}f0.0L{i+1}a0.0^" + ('0' if direction==1 else '1'))
+        # time.sleep(0.5 * len(freqs))
+    
+class DummySynthNVProController:
+    def __init__(self, serial_connection):
+        pass
+    
+    @classmethod
+    def from_serial_port(
+        cls, port=None, baud_rate=None, *args, **kwargs
+    ) -> "DummySynthNVProController":
+        return cls(None, *args, **kwargs)
+    
+    @classmethod
+    def send_command(cls, command, wait_time=0):
+        pass
+    
+    def get_help(self):
+        pass
+    
+    def set_rf_frequency(self, frequency_mhz):
+        pass
+    
+    def get_rf_frequency(self):
+        pass
+    
+    def set_rf_power(self, power_dbm):
+        pass
+    
+    def get_rf_power(self):
+        pass
+    
+    def get_calibration_succesful(self):
+        pass
+    
+    def set_temp_compensation(self, method):
+        pass
+    
+    def read_power_detector(self, x=None):
+        pass
+    
+    def set_rf_detector_mode(self, mode):
+        pass
+    
+    def get_rf_detector_mode(self):
+        pass
+    
+    def set_raw_dac(self, dac_value):
+        pass
+    
+    def get_raw_dac(self):
+        pass
+    
+    def set_phase_step(self, phase_step):
+        pass
+    
+    def set_rf_mute(self, mute):
+        pass
+    
+    def get_rf_mute(self):
+        pass
+    
+    def set_pll_enable(self, enable):
+        pass
+    
+    def get_pll_enable(self):
+        pass
+    
+    def set_pll_charge_pump_current(self, x):
+        pass
+    
+    def get_pll_charge_pump_current(self):
+        pass
+    
+    def set_reference_doubler(self, x):
+        pass
+    
+    def query_reference_doubler(self):
+        pass
+    
+    def set_channel_spacing(self, frequency):
+        pass
+    
+    def query_channel_spacing(self):
+        pass
+    
+    def save_settings_to_eeprom(self):
+        pass
+    
+    def set_reference_source(self, source):
+        pass
+    
+    def query_reference_source(self):
+        pass
+    
+    def set_reference_frequency(self, frequency):
+        pass
+    
+    def query_reference_frequency(self):
+        pass
+    
+    def set_trigger_connector_function(self, function):
+        pass
+    
+    def get_trigger_connector_function(self):
+        pass
+    
+    def set_sweep_step_time(self, time):
+        pass
+    
+    def query_sweep_step_time(self):
+        pass
+    
+    def set_lower_freq_linear_sweep(self, frequency):
+        pass
+    
+    def get_lower_freq_linear_sweep(self):
+        pass
+    
+    def set_upper_freq_linear_sweep(self, frequency):
+        pass
+    
+    def get_upper_freq_linear_sweep(self):
+        pass
+    
+    def set_step_size_freq_linear_sweep(self, frequency):
+        pass
+    
+    def get_step_size_freq_linear_sweep(self):
+        pass
+    
+    def set_linear_sweep_power_low(self, power):
+        pass
+    
+    def get_linear_sweep_power_low(self):
+        pass
+    
+    def set_linear_sweep_power_high(self, power):
+        pass
+    
+    def get_linear_sweep_power_high(self):
+        pass
+    
+    def set_sweep_direction(self, direction):
+        pass
+    
+    def get_sweep_direction(self):
+        pass
+    
+    def set_sweep_type(self, sweep_type):
+        pass
+    
+    def get_sweep_type(self):
+        pass
+    
+    def set_read_while_sweep(self, read):
+        pass
+    
+    def get_read_while_sweep(self):
+        pass
+    
+    def set_sweep_display_style(self, style):
+        pass
+    
+    def get_sweep_display_style(self):
+        pass
+    
+    def run_sweep(self, start=True):
+        pass
+    
+    def get_sweep_state(self):
+        pass
+    
+    def set_sweep_continuous(self, continuous):
+        pass
+    
+    def get_sweep_continuous(self):
+        pass
+    
+    def query_internal_temperature(self):
+        pass
+    
+    def show_version(self, version_type):
+        pass
+    
+    def show_model_type(self):
+        pass
+    
+    def show_serial_number(self):
+        pass
+    

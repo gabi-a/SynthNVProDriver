@@ -89,12 +89,31 @@ class SerialConnection:
     def read_responses(self, wait_time: float) -> List[str]:
         data = []
         start_time = time.perf_counter()
-        while time.perf_counter() - start_time < wait_time:
-            if self.connection.in_waiting > 0:
+        if wait_time > 0:
+            while time.perf_counter() - start_time < wait_time:
+                if self.connection.in_waiting > 0:
+                    data.append(self.read_response())
+        else:
+            while self.connection.in_waiting > 0:
                 data.append(self.read_response())
-        response = self.connection.readline().decode()
-        LOGGER.debug(f"Received: {response}")
+        return data
 
+    def read_until_eom(self) -> List[str]:
+        """
+        Reads the response from a serial port until the end of message (EOM) character is received.
+        Returns a list of strings.
+
+        Returns
+        -------
+        data: List[str]
+            List of strings received from the serial port.
+        """
+        data = []
+        while True:
+            line = self.read_response()
+            if 'EOM' in line:
+                break
+            data.append(line)
         return data
 
     def disconnect(self):
