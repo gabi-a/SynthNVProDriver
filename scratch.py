@@ -1,6 +1,6 @@
 import time
 
-from nvprocontroller import SynthNVProController
+from SynthNVProDriver.nvprocontroller import SynthNVProController
 from SynthNVProDriver.NVPserialconnection import SerialConnection
 
 ser = SerialConnection('COM4', 2000000)
