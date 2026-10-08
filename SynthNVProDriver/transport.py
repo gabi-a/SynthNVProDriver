@@ -158,19 +158,6 @@ class Transport:
         data = encode_command(command, arg, query=query, decimals=decimals)
         return self._exchange(data, command, timeout, until_eom=True)
 
-    def request_for(self, command: str, duration: float) -> list[str]:
-        """Sends a command and returns every line that arrives within
-        ``duration`` seconds (for replies with no end marker, e.g. help)."""
-        with self._lock:
-            self._drain()
-            self._write(encode_command(command))
-            deadline = time.monotonic() + duration
-            lines = []
-            while (line := self._read_line(deadline)) is not None:
-                if line:
-                    lines.append(line)
-            return lines
-
     def read_until_eom(self, *, timeout: float | None = None) -> list[str]:
         """Collects lines already being produced by the device (e.g. a running
         sweep with display on) up to the ``EOM.`` marker, without sending."""

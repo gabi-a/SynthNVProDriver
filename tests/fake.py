@@ -22,7 +22,8 @@ class FakeSerial:
         text = data.decode()
         self.written.append(text)
         if text == "?":
-            self.rx += b"help line 1\r\nhelp line 2\r\n"
+            self.rx += (b"f) RF Frequency Now (MHz) 1000.00000000\r\nE) PLL Chip En On(1) or Off(0) 1\r\n"
+                        b"e) Write all settings to eeprom \r\nCal datecode YYWW 2635\r\nEOM.\r\n")
         elif text == "w5":
             self.rx += b"".join(b"-10.1\r\n" for _ in range(5)) + b"EOM.\r\n"
         elif text == "L?":

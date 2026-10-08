@@ -240,3 +240,14 @@ def test_table_write_rejects_bad_input(freqs, powers):
     with pytest.raises(ValueError):
         synth.sweep.write_table(freqs, powers)
     assert fake.written == []
+
+
+def test_read_settings_parses_help_listing():
+    synth, _ = make_synth()
+    assert synth.read_settings() == {"f": "1000.00000000", "E": "1", "e": ""}
+
+
+def test_save_to_eeprom_sends_e():
+    synth, fake = make_synth()
+    synth.save_to_eeprom()
+    assert fake.written == ["e"]

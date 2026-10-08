@@ -35,8 +35,3 @@ def test_missing_eom_times_out_instead_of_hanging():
     t = make_transport(fake)
     with pytest.raises(ResponseTimeout):
         t.request_until_eom("L", query=False, timeout=0.05)  # fake sends nothing for "L"
-
-
-def test_request_for_collects_lines():
-    t = make_transport()
-    assert t.request_for("?", 0.1) == ["help line 1", "help line 2"]

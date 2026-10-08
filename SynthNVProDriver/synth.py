@@ -29,6 +29,8 @@ from typing import Callable, Sequence, TypeVar
 from SynthNVProDriver.protocol import (
     CommandError,
     ProtocolError,
+    ResponseTimeout,
+    SynthNVProNotFound,
     parse_bool,
     parse_float,
     parse_int,
@@ -272,9 +274,42 @@ class SynthNVPro:
     def is_enabled(self) -> bool:
         return self._query_bool("E")
 
-    def help(self, duration_s: float = 0.3) -> list[str]:
-        """The device's own command summary."""
-        return self._t.request_for("?", duration_s)
+    def help(self) -> list[str]:
+        """The device's own command summary: one line per setting."""
+        return self._t.request_until_eom("?", timeout=3.0)
+
+    def read_settings(self) -> dict[str, str]:
+        """Every setting the device lists, as ``{command letter: value text}``
+        (e.g. ``{"E": "0", "f": "3000.00000000", ...}``). Commands without a
+        value (actions like ``e`` or ``B``) map to ``""``."""
+        settings = {}
+        for line in self.help():
+            if len(line) > 2 and line[1] == ")":
+                tokens = line[2:].split()
+                last = tokens[-1] if tokens else ""
+                try:
+                    float(last)
+                except ValueError:
+                    last = ""
+                settings[line[0]] = last
+        return settings
+
+    def reboot(self, timeout_s: float = 15.0) -> None:
+        """Reboots the device and reconnects once it re-enumerates. Everything
+        not saved with :meth:`save_to_eeprom` is lost; the device comes up in
+        its saved power-on state, which may have the RF output on."""
+        self._t.send("B")
+        deadline = time.monotonic() + timeout_s
+        time.sleep(2.0)  # let it drop off the bus before looking for it again
+        while True:
+            try:
+                self._t.reconnect()
+                self.ping()
+                return
+            except (SynthNVProNotFound, OSError, ConnectionError, ResponseTimeout):
+                if time.monotonic() > deadline:
+                    raise ResponseTimeout("device did not come back after reboot") from None
+                time.sleep(0.5)
 
     def get_temperature(self) -> float:
         """Internal temperature in degrees C."""
