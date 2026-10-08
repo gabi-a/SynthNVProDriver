@@ -75,10 +75,21 @@ gone. `SynthNVProController.from_serial_port(port)` becomes
 `get_calibration_succesful` returned True for `"0"` (now `is_calibrated`), and
 `get_pll_enable` always returned False (now `is_enabled`).
 
-## Not yet verified on hardware
+## Hardware notes
 
-This rewrite was developed without a device attached. To confirm with
-`hwtest/checkout.py`: the USB VID:PID (discovery probes by model query so it does
-not depend on it), that setting commands produce no reply or echo, the table
-write terminator/direction digit (kept from the old driver), and the verify
-tolerances.
+Verified on a real device (firmware 2.07, USB id `0483:a3e7`): discovery, info,
+status, frequency/power/enable/disable with read-back verification, the
+detector, and sweep configuration. Setting commands produce no reply. `z?`
+(temperature) must be sent as plain `z`, since the trailing `?` also triggers
+the help dump. The device can power up with its output **on** (at its saved
+power), so start scripts with `synth.disable()`.
+
+Not yet verified: `sweep.start()` results, tabular sweeps (`write_table`, whose
+direction digit is kept from the old driver), and the 499-entry table limit.
+
+On Linux, give your user access to the port, e.g.:
+
+```sh
+echo 'SUBSYSTEM=="tty", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="a3e7", MODE="0666"' | sudo tee /etc/udev/rules.d/99-synthnvpro.rules
+sudo udevadm control --reload && sudo udevadm trigger
+```

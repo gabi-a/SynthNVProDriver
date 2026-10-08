@@ -24,6 +24,10 @@ MODEL_SUBSTRING = "synthnv"
 
 PROBE_TIMEOUT_S = 0.5
 
+DEFAULT_HWID = "VID:PID=0483:A3E7"
+"""USB id of the SynthNV Pro (it enumerates as an STMicroelectronics device).
+Pass ``hwid=None`` to discovery to consider every USB serial port instead."""
+
 
 def probe_port(port: str, baud_rate: int = 2_000_000) -> str | None:
     """Asks the device on ``port`` for its model (a read-only query).
@@ -42,11 +46,11 @@ def probe_port(port: str, baud_rate: int = 2_000_000) -> str | None:
     return reply if MODEL_SUBSTRING in reply.lower() else None
 
 
-def find_ports(hwid: str | None = None) -> list[str]:
+def find_ports(hwid: str | None = DEFAULT_HWID) -> list[str]:
     """Returns the device paths of all connected SynthNV Pros.
 
-    Candidate ports are the USB serial ports (optionally only those whose
-    ``hwid`` contains the string ``hwid``, e.g. ``"VID:PID=16D0:0AAD"``). Each
+    Candidate ports are the USB serial ports whose ``hwid`` contains the string
+    ``hwid`` (default: the SynthNV Pro's USB id; ``None`` for all). Each
     candidate is probed with a harmless model query and kept only if it
     answers as a SynthNV Pro, so other serial devices are never mistaken for
     one (they do receive the single byte ``+``).
@@ -64,7 +68,7 @@ def find_ports(hwid: str | None = None) -> list[str]:
     return found
 
 
-def find_port(hwid: str | None = None) -> str:
+def find_port(hwid: str | None = DEFAULT_HWID) -> str:
     """Returns the device path of the only connected SynthNV Pro.
 
     Raises SynthNVProNotFound if there is none, and ValueError if there are
@@ -90,7 +94,7 @@ class Transport:
     DEFAULT_TIMEOUT_S = 1.0
 
     def __init__(self, port: str | None = None, baud_rate: int = 2_000_000,
-                 hwid: str | None = None):
+                 hwid: str | None = DEFAULT_HWID):
         self.port = port if port is not None else find_port(hwid)
         self._hwid = hwid
         # USB CDC ignores the baud rate, but pyserial wants one.

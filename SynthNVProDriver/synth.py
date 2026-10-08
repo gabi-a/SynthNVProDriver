@@ -278,7 +278,9 @@ class SynthNVPro:
 
     def get_temperature(self) -> float:
         """Internal temperature in degrees C."""
-        return self._query_float("z")
+        # Plain "z", not "z?": the trailing "?" is also the help command and
+        # makes the device dump its whole menu after the temperature.
+        return parse_float(self._t.request("z"))
 
     def save_to_eeprom(self) -> None:
         """Stores all current settings as the power-up defaults. Check that
