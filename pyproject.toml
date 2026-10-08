@@ -4,10 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SynthNVProDriver"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python driver for the Windfreak SynthNV Pro RF synthesizer."
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = ["pyserial>=3.5"]
 
 [tool.setuptools]
 packages = ["SynthNVProDriver"]
+
+[tool.setuptools.package-data]
+SynthNVProDriver = ["py.typed"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
